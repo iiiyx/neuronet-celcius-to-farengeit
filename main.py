@@ -1,6 +1,4 @@
-from itertools import chain
 from random import randint
-from typing import Iterable
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -11,16 +9,16 @@ from keras.optimizers import Adam
 from tensorflow import keras
 
 
-def celsius_to_farenheit(c: int) -> float:
+def celsius_to_fahrenheit(c: int) -> float:
     return c * 1.8 + 32
 
 
 def generate_data():
-    return np.array([randint(-100, 100) for _ in range(20)])
+    return np.array([randint(-100, 100) for _ in range(10000)])
 
 
 def get_expected_data(input_data):
-    return np.array([celsius_to_farenheit(c) for c in input_data])
+    return np.array([celsius_to_fahrenheit(c) for c in input_data])
 
 
 def almost_equal(m, threshold=0.01):
@@ -38,9 +36,6 @@ class TargetLossEarlyStopping(EarlyStopping):
         if current is None:
             return
         if current <= self.target_val:
-            print(
-                f"\n\n\nReached {self.target_val} loss value so cancelling training!\n\n\n"
-            )
             self.model.stop_training = True
 
 
@@ -53,12 +48,11 @@ model = Sequential()
 model.add(Dense(units=1, input_shape=(1,), activation="linear"))
 model.compile(loss="mean_squared_error", optimizer=Adam(0.1))
 
-epochs = 2000
+epochs = 100
 history: History = model.fit(
     input_data,
     expected_data,
     epochs=epochs,
-    verbose=0,
     callbacks=[trainingStopCallback],
 )
 
@@ -66,17 +60,15 @@ test_data = generate_data()
 expected_test_data = get_expected_data(test_data)
 actual_data = model.predict(test_data)
 
-print(f"input data: {test_data}")
-print(f"expected data: {expected_test_data}")
-print(f"actaul data: {[e[0] for e in actual_data]}")
 print(f"epochs: {len(history.epoch)}/{epochs}")
-
-plt.plot(history.history["loss"])
-plt.grid(True)
-plt.show()
 
 w = model.get_weights()
 w = (w[0][0][0], w[1][0])
 print(f"weights: {w}")
+
+plt.plot(history.history["loss"])
+plt.grid(True)
+plt.title("Loss/Epoch")
+plt.show()
 
 assert all(map(almost_equal, zip(w, (1.8, 32))))
