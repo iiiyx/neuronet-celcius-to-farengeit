@@ -6,7 +6,6 @@ from keras.callbacks import EarlyStopping, History
 from keras.layers import Dense
 from keras.models import Sequential
 from keras.optimizers import Adam
-from tensorflow import keras
 
 
 def celsius_to_fahrenheit(c: int) -> float:
